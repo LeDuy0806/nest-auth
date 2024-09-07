@@ -1,26 +1,35 @@
-import { NestFactory } from '@nestjs/core'
-import { AppModule } from './modules/main/app.module'
-import { Logger, ValidationPipe } from '@nestjs/common'
+import { BadRequestException, HttpStatus, Logger, ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
+import { NestFactory } from '@nestjs/core'
+import { AppModule } from './app.module'
+import { AllExceptionsFilter } from './common/filters/all-exceptions-filter'
+import { ConfigKeyPaths } from './config'
+import setupSwagger from './setup-swagger'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
-  const configService = app.get(ConfigService)
+  const configService = app.get(ConfigService<ConfigKeyPaths>)
 
   const logger = new Logger('Main')
+
+  app.useGlobalFilters(new AllExceptionsFilter()) // Enable global filters
 
   // Enable validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true, // Automatically transform payloads to DTO instances
       whitelist: true, // Strip properties that are not in the DTO
-      forbidNonWhitelisted: true // Throw an error if non-whitelisted properties are present
+      forbidNonWhitelisted: true, // Throw an error if non-whitelisted properties are present
+      errorHttpStatusCode: HttpStatus.BAD_REQUEST,
+      stopAtFirstError: true,
+      exceptionFactory: (validationErrors) => {
+        return new BadRequestException(validationErrors[0].constraints[Object.keys(validationErrors[0].constraints)[0]])
+      }
     })
   )
 
   // Set global prefix for all routes
-  const globalPrefix = configService.get('GLOBAL_PREFIX')
+  const globalPrefix = configService.get('app.globalPrefix')
   app.setGlobalPrefix(globalPrefix)
 
   // Enable CORS
@@ -32,31 +41,11 @@ async function bootstrap() {
   })
 
   //config swagger
-  const config = new DocumentBuilder()
-    .setTitle('NestJS - APIs Document')
-    .setDescription('All Modules APIs')
-    .setVersion('1.0')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'Bearer',
-        bearerFormat: 'JWT',
-        in: 'header'
-      },
-      'token'
-    )
-    .addSecurityRequirements('token')
-    .build()
-
-  const document = SwaggerModule.createDocument(app, config)
-  SwaggerModule.setup('swagger', app, document, {
-    swaggerOptions: {
-      persistAuthorization: true
-    }
-  })
+  const swaggerPath = configService.get('swagger.path')
+  setupSwagger(app, configService)
 
   // Start listening to port
-  const port = configService.get('PORT')
+  const port = configService.get('app.port')
   await app.listen(port, () => {
     logger.log(`Listening to port ${port}`)
   })
@@ -66,10 +55,12 @@ async function bootstrap() {
   if (baseUrl === '0.0.0.0' || baseUrl === '::') {
     baseUrl = 'localhost'
   }
-  const url = `http://${baseUrl}:${AppModule.port}${globalPrefix}`
+  const url = `http://${baseUrl}:${port}${globalPrefix}`
+
   logger.log(`Listening to ${url}`)
-  if (AppModule.isDev) {
-    logger.log(`API Documentation available at ${url}/swagger`)
+
+  if (configService.get('app.isDev')) {
+    logger.log(`API Documentation available at ${url.replace('api', swaggerPath)}/`)
   }
 }
 bootstrap()
