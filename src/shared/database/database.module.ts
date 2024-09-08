@@ -3,9 +3,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { DataSource } from 'typeorm'
 import { ConfigKeyPaths, dbRegToken, IDatabaseConfig } from '~/config'
+import { DatabaseService } from './database.service'
 import { TypeORMLogger } from './typeorm-logger'
 
 @Module({
+  providers: [DatabaseService],
   imports: [
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

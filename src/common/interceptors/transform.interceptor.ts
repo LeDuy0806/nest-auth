@@ -1,6 +1,6 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import { Request } from 'express'
+import { FastifyRequest } from 'fastify'
 import { parse } from 'qs'
 import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
@@ -12,7 +12,7 @@ export class TransformInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler<any>): Observable<any> {
     const http = context.switchToHttp()
-    const request = http.getRequest<Request>()
+    const request = http.getRequest<FastifyRequest>()
 
     //Process query parameters and convert array parameters into arrays, such as: ?a[]=1&a[]=2 => { a: [1, 2] }
     request.query = parse(request.url.split('?')[1])

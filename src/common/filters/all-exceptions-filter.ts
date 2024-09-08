@@ -1,5 +1,5 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common'
-import { Request } from 'express'
+import { FastifyRequest } from 'fastify'
 import { QueryFailedError } from 'typeorm'
 
 interface ErrorResponse {
@@ -14,7 +14,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp()
     const response = ctx.getResponse()
-    const request = ctx.getRequest<Request>()
+    const request = ctx.getRequest<FastifyRequest>()
 
     const status = this.getStatus(exception)
     const message = this.getErrorMessage(exception)
