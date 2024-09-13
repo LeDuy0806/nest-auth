@@ -10,8 +10,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, AuthStrategy.JWT) {
   constructor(@Inject(SecurityConfig.KEY) private readonly securityConfig: ISecurityConfig) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      ignoreExpiration: false,
-      secretOrKey: securityConfig.jwtSecret
+      // ignoreExpiration: isDev,
+      secretOrKey: securityConfig.accessSecret
     })
   }
   validate(payload: IAuthUser) {

@@ -1,15 +1,15 @@
 import { RecordNamePaths } from '~/utils'
-import { AppConfig, appRegToken, IAppConfig } from './app.config'
-import { DatabaseConfig, dbRegToken, IDatabaseConfig } from './database.config'
-import { IRedisConfig, RedisConfig, redisRegToken } from './redis.config'
-import { ISecurityConfig, SecurityConfig, securityRegToken } from './security.config'
-import { ISwaggerConfig, SwaggerConfig, swaggerRegToken } from './swagger.config'
+import { AppConfig, appRegToken, IAppConfig } from './env/app.config'
+import { DatabaseConfig, dbRegToken, IDatabaseConfig } from './env/database.config'
+import { IRedisConfig, RedisConfig, redisRegToken } from './env/redis.config'
+import { ISecurityConfig, SecurityConfig, securityRegToken } from './env/security.config'
+import { ISwaggerConfig, SwaggerConfig, swaggerRegToken } from './env/swagger.config'
 
-export * from './app.config'
-export * from './database.config'
-export * from './redis.config'
-export * from './security.config'
-export * from './swagger.config'
+export * from './env/app.config'
+export * from './env/database.config'
+export * from './env/redis.config'
+export * from './env/security.config'
+export * from './env/swagger.config'
 
 export interface AllConfigType {
   [appRegToken]: IAppConfig

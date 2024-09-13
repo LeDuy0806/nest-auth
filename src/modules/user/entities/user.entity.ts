@@ -1,15 +1,17 @@
-import { Column, Entity, JoinColumn, OneToOne } from 'typeorm'
+import { Column, Entity, JoinColumn, OneToMany, OneToOne, Unique } from 'typeorm'
 import { CommonEntity } from '~/common/entity/common.entity'
-import { Credential } from './credential.entity'
+import { AccessTokenEntity } from '~/modules/auth/entities/access-token.entity'
+import { CredentialEntity } from './credential.entity'
 
 @Entity({
   name: 'users'
 })
-export class User extends CommonEntity {
+export class UserEntity extends CommonEntity {
   @Column()
   username: string
 
   @Column()
+  @Unique(['email'])
   email: string
 
   @Column({
@@ -17,9 +19,14 @@ export class User extends CommonEntity {
   })
   is_verified: boolean
 
-  @OneToOne(() => Credential, (credential) => credential.user, {
+  @OneToOne(() => CredentialEntity, (credential) => credential.user, {
     onDelete: 'RESTRICT'
   })
   @JoinColumn()
-  credential: Credential
+  credential: CredentialEntity
+
+  @OneToMany(() => AccessTokenEntity, (accessToken) => accessToken.user, {
+    cascade: true
+  })
+  accessTokens: AccessTokenEntity[]
 }

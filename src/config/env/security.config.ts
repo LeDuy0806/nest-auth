@@ -1,14 +1,15 @@
 import { ConfigType, registerAs } from '@nestjs/config'
 
-import { env, envNumber } from '~/global/env'
+import { env } from '~/global/env'
 
 export const securityRegToken = 'security'
 
 export const SecurityConfig = registerAs(securityRegToken, () => ({
-  jwtSecret: env('ACCESS_TOKEN_SECRET'),
-  jwtExpired: envNumber('ACCESS_TOKEN_EXPIRED_IN'),
+  accessSecret: env('ACCESS_TOKEN_SECRET'),
+  accessExpireIn: env('ACCESS_TOKEN_EXPIRED_IN'),
   refreshSecret: env('REFRESH_TOKEN_SECRET'),
-  refreshExpire: envNumber('REFRESH_TOKEN_EXPIRED_IN'),
+  refreshExpireIn: env('REFRESH_TOKEN_EXPIRED_IN'),
+  cookieRefresh: env('COOKIE_REFRESH', 'refresh_token'),
   cookieSecret: env('COOKIE_SECRET')
 }))
 

@@ -1,5 +1,3 @@
-export type IAuthUser = {
-  id: string
-  iat?: number
-  exp?: number
-}
+import { IAccessToken } from '~/modules/auth/interfaces/access-token.interface'
+
+export type IAuthUser = IAccessToken

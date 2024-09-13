@@ -2,32 +2,31 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm'
 import { isEmpty } from 'lodash'
 import { EntityManager, Repository } from 'typeorm'
-import { ErrorMessageEnum } from '~/constants/error-message.constant'
 import { hashPassword } from '~/utils/password.util'
 import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
-import { Credential, User } from './entities'
+import { CredentialEntity, UserEntity } from './entities'
 
 @Injectable()
 export class UserService {
   constructor(
     //inject repository for user entity
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
+    @InjectRepository(UserEntity)
+    private userRepository: Repository<UserEntity>,
 
     //inject repository for credential entity
-    @InjectRepository(Credential)
-    private credentialRepository: Repository<Credential>
+    @InjectRepository(CredentialEntity)
+    private credentialRepository: Repository<CredentialEntity>
   ) {}
 
   async create({ email, password, username }: CreateUserDto) {
-    const exists = await this.userRepository.findOne({
-      where: [{ email }, { username }]
-    })
+    // const exists = await this.userRepository.findOne({
+    //   where: [{ email }, { username }]
+    // })
 
-    if (!isEmpty(exists)) {
-      throw new BadRequestException(ErrorMessageEnum.USER_ALREADY_EXISTS)
-    }
+    // if (!isEmpty(exists)) {
+    //   throw new BadRequestException(ErrorMessageEnum.USER_ALREADY_EXISTS)
+    // }
 
     const hashedPassword = await hashPassword(password || '123456')
     //create new credential
@@ -60,13 +59,13 @@ export class UserService {
 
       await entityManager.save(savedUser)
 
-      return await entityManager.findOne(User, {
+      return await entityManager.findOne(UserEntity, {
         where: { id: savedUser.id }
       })
     })
   }
 
-  async findOne<T = string>(key: keyof User, value: T): Promise<User> {
+  async findOne<T = string>(key: keyof UserEntity, value: T): Promise<UserEntity> {
     const user = await this.userRepository.findOne({
       where: {
         [key]: value

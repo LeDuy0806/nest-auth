@@ -1,6 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common'
-import { FastifyRequest } from 'fastify'
+import { FastifyReply, FastifyRequest } from 'fastify'
 import { QueryFailedError } from 'typeorm'
+import { ErrorMessageEnum } from '~/constants'
 
 interface ErrorResponse {
   readonly success: boolean
@@ -13,16 +14,18 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp()
-    const response = ctx.getResponse()
+    const response = ctx.getResponse<FastifyReply>()
     const request = ctx.getRequest<FastifyRequest>()
 
     const status = this.getStatus(exception)
     const message = this.getErrorMessage(exception)
     const stack = (exception as any)?.stack
 
-    this.logger.error(`Http status: ${status} Error message ${message} at endpoint: ${request.url}`)
+    this.logger.error(
+      `${status}(${exception.constructor.name}) - Error message "${message}" at endpoint: ${request.url}`
+    )
 
-    response.status(status).json({
+    response.status(status).send({
       success: false,
       statusCode: status,
       timestamp: new Date().toISOString(),
@@ -45,6 +48,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       return exception.message
     } else if (exception instanceof QueryFailedError) {
+      if (exception.driverError?.code === '23505') {
+        return ErrorMessageEnum.DUPLICATED_VALUE
+      }
       return exception.message
     } else {
       return (exception as any)?.response?.message ?? (exception as ErrorResponse)?.message ?? `${exception}`
